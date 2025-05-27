@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Home Dashboard";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to Home Finance Tracker</h1>
+    <p class="lead"> Track your household expenses easily and efficiently.</p>
+
+    <div class="mt-4">
+        <a class="btn btn-primary btn-lg m-2" asp-controller="Expenses" asp-action="Index"> View all expenses</a>
+        <a class="btn btn-success btn-lg m-2" asp-controller="Expenses" asp-action="Create"> Add New Expense</a>
+        <a class="btn btn-warning btn-lg m-2" asp-controller="Expenses" asp-action="Summary"> View Summary</a>
+    </div>
+</div>
