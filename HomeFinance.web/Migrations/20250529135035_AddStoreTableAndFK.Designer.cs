@@ -4,6 +4,7 @@ using HomeFinance.web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeFinance.web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250529135035_AddStoreTableAndFK")]
+    partial class AddStoreTableAndFK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,7 +47,7 @@ namespace HomeFinance.web.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("StoreId")
+                    b.Property<int>("StoreId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -69,30 +72,15 @@ namespace HomeFinance.web.Migrations
                     b.HasKey("StoreId");
 
                     b.ToTable("Stores");
-
-                    b.HasData(
-                        new
-                        {
-                            StoreId = 1,
-                            StoreName = "Walmart"
-                        },
-                        new
-                        {
-                            StoreId = 2,
-                            StoreName = "Sobeys"
-                        },
-                        new
-                        {
-                            StoreId = 3,
-                            StoreName = "Atlantic Superstore"
-                        });
                 });
 
             modelBuilder.Entity("HomeFinance.web.Models.Expense", b =>
                 {
                     b.HasOne("HomeFinance.web.Models.Store", "Store")
                         .WithMany()
-                        .HasForeignKey("StoreId");
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Store");
                 });

@@ -20,6 +20,12 @@ namespace HomeFinance.web.Models
         [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
+        //Foreign Key
+        public int? StoreId { get; set; }
+
+        //Navigate
+        public Store? Store { get; set; }
+
 
     }
 }

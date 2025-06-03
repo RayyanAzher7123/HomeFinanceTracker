@@ -19,11 +19,25 @@ namespace HomeFinance.web.Controllers
             _context = context;
         }
 
+        //Populate Store Dropdown
+        private void PopulateStoresDropdown(int? SelectedStoreId = null)
+        {
+            var stores = _context.Stores
+                .Select(s => new SelectListItem
+                {
+                    Value = s.StoreId.ToString(),
+                    Text = s.StoreName
+                }).ToList();
+
+            ViewBag.StoreId = new SelectList(stores, "Value", "Text", SelectedStoreId);
+        }
+
 
         // GET: Expenses
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Expenses.ToListAsync());
+            var expenses = await _context.Expenses.Include(e => e.Store).ToListAsync();
+            return View(expenses);
         }
 
         // GET: Expenses/Details/5
@@ -35,6 +49,7 @@ namespace HomeFinance.web.Controllers
             }
 
             var expense = await _context.Expenses
+                .Include(e => e.Store)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (expense == null)
             {
@@ -47,6 +62,7 @@ namespace HomeFinance.web.Controllers
         // GET: Expenses/Create
         public IActionResult Create()
         {
+            PopulateStoresDropdown();
             return View();
         }
 
@@ -55,7 +71,7 @@ namespace HomeFinance.web.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Category,Description,Amount,Date")] Expense expense)
+        public async Task<IActionResult> Create([Bind("Id,Category,Description,Amount,Date,StoreId")] Expense expense)
         {
             if (ModelState.IsValid)
             {
@@ -63,6 +79,8 @@ namespace HomeFinance.web.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            PopulateStoresDropdown(expense.StoreId);
             return View(expense);
         }
 
@@ -79,6 +97,7 @@ namespace HomeFinance.web.Controllers
             {
                 return NotFound();
             }
+            PopulateStoresDropdown(expense.StoreId);
             return View(expense);
         }
 
@@ -87,7 +106,7 @@ namespace HomeFinance.web.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Category,Description,Amount,Date")] Expense expense)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Category,Description,Amount,Date,StoreId")] Expense expense)
         {
             if (id != expense.Id)
             {
@@ -114,6 +133,7 @@ namespace HomeFinance.web.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            PopulateStoresDropdown(expense.StoreId);
             return View(expense);
         }
 
@@ -126,6 +146,7 @@ namespace HomeFinance.web.Controllers
             }
 
             var expense = await _context.Expenses
+                .Include(e => e.Store)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (expense == null)
             {
