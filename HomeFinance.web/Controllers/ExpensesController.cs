@@ -32,6 +32,22 @@ namespace HomeFinance.web.Controllers
             ViewBag.StoreId = new SelectList(stores, "Value", "Text", SelectedStoreId);
         }
 
+        //Dropdown Category
+        private void PopulateCategoryDropdown(string? selectedCategory = null)
+        {
+            var categories = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Groceries", Text = "Groceries" },
+        new SelectListItem { Value = "Outing", Text = "Outing" },
+        new SelectListItem { Value = "Utilities", Text = "Utilities" },
+        new SelectListItem { Value = "Entertainment", Text = "Entertainment" },
+        new SelectListItem { Value = "Other", Text = "Other" }
+    };
+
+            ViewBag.CategoryList = new SelectList(categories, "Value", "Text", selectedCategory);
+        }
+
+
 
         // GET: Expenses
         public async Task<IActionResult> Index()
@@ -62,6 +78,7 @@ namespace HomeFinance.web.Controllers
         // GET: Expenses/Create
         public IActionResult Create()
         {
+            PopulateCategoryDropdown();
             PopulateStoresDropdown();
             return View();
         }
@@ -80,6 +97,7 @@ namespace HomeFinance.web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            PopulateCategoryDropdown(expense.Category);
             PopulateStoresDropdown(expense.StoreId);
             return View(expense);
         }
@@ -97,6 +115,8 @@ namespace HomeFinance.web.Controllers
             {
                 return NotFound();
             }
+
+            PopulateCategoryDropdown(expense.Category);
             PopulateStoresDropdown(expense.StoreId);
             return View(expense);
         }
@@ -133,6 +153,7 @@ namespace HomeFinance.web.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            PopulateCategoryDropdown(expense.Category);
             PopulateStoresDropdown(expense.StoreId);
             return View(expense);
         }
