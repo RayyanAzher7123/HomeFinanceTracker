@@ -1,0 +1,51 @@
+﻿@model HomeFinance.web.Models.ExpenseSummaryPageViewModel
+
+@{
+    ViewData["Title"] = "Expense Summary";
+}
+
+<h1>Expense Summary</h1>
+
+<hr />
+
+<!-- Category-wise Summary -->
+<h2>Category-wise Summary</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Total Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.CategorySummary)
+        {
+            <tr>
+                <td>@item.Category</td>
+                <td>@item.TotalAmount.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+<!-- Month-wise Summary -->
+<h2>Month-wise Summary</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Month</th>
+            <th>Total Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.MonthSummary)
+        {
+            <tr>
+                <td>@item.Month</td>
+                <td>@item.TotalAmount.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>

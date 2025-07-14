@@ -192,6 +192,53 @@ namespace HomeFinance.web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        public IActionResult ViewSummary()
+        {
+            // Category Summary
+            var categorySummary = _context.Expenses
+                .GroupBy(e => e.Category)
+                .Select(g => new ExpenseSummaryViewModel
+                {
+                    Category = g.Key,
+                    TotalAmount = g.Sum(e => e.Amount)
+                })
+                .OrderBy(s => s.Category)
+                .ToList();
+
+            // Month Summary
+            var monthSummaryData = _context.Expenses
+    .GroupBy(e => new { e.Date.Year, e.Date.Month })
+    .Select(g => new
+    {
+        Year = g.Key.Year,
+        Month = g.Key.Month,
+        TotalAmount = g.Sum(e => e.Amount)
+    })
+    .OrderBy(g => g.Year)
+    .ThenBy(g => g.Month)
+    .ToList();  // Executes query here, data now in memory
+
+            var monthSummary = monthSummaryData
+     .Select(g => new ExpenseSummaryViewModel
+     {
+         Month = new DateTime(g.Year, g.Month, 1).ToString("MMMM yyyy"), // Formats as "January 2025"
+         Category = "", // no category for this summary
+         TotalAmount = g.TotalAmount
+     })
+     .ToList();
+
+
+
+            var viewModel = new ExpenseSummaryPageViewModel
+            {
+                CategorySummary = categorySummary,
+                MonthSummary = monthSummary
+            };
+
+            return View(viewModel);
+        }
+
+
         private bool ExpenseExists(int id)
         {
             return _context.Expenses.Any(e => e.Id == id);
