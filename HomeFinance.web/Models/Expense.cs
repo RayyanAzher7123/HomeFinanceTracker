@@ -26,6 +26,9 @@ namespace HomeFinance.web.Models
         //Navigate
         public Store? Store { get; set; }
 
+        public string? BillImagePath { get; set; }
+
+
 
     }
 }

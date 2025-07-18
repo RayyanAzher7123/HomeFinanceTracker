@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +21,7 @@ namespace HomeFinance.web.Controllers
             _context = context;
         }
 
-        //Populate Store Dropdown
+        // Populate Store Dropdown
         private void PopulateStoresDropdown(int? SelectedStoreId = null)
         {
             var stores = _context.Stores
@@ -32,22 +34,20 @@ namespace HomeFinance.web.Controllers
             ViewBag.StoreId = new SelectList(stores, "Value", "Text", SelectedStoreId);
         }
 
-        //Dropdown Category
+        // Dropdown Category
         private void PopulateCategoryDropdown(string? selectedCategory = null)
         {
             var categories = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "Groceries", Text = "Groceries" },
-        new SelectListItem { Value = "Outing", Text = "Outing" },
-        new SelectListItem { Value = "Utilities", Text = "Utilities" },
-        new SelectListItem { Value = "Entertainment", Text = "Entertainment" },
-        new SelectListItem { Value = "Other", Text = "Other" }
-    };
+            {
+                new SelectListItem { Value = "Groceries", Text = "Groceries" },
+                new SelectListItem { Value = "Outing", Text = "Outing" },
+                new SelectListItem { Value = "Utilities", Text = "Utilities" },
+                new SelectListItem { Value = "Entertainment", Text = "Entertainment" },
+                new SelectListItem { Value = "Other", Text = "Other" }
+            };
 
             ViewBag.CategoryList = new SelectList(categories, "Value", "Text", selectedCategory);
         }
-
-
 
         // GET: Expenses
         public async Task<IActionResult> Index()
@@ -67,6 +67,7 @@ namespace HomeFinance.web.Controllers
             var expense = await _context.Expenses
                 .Include(e => e.Store)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (expense == null)
             {
                 return NotFound();
@@ -84,14 +85,28 @@ namespace HomeFinance.web.Controllers
         }
 
         // POST: Expenses/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Category,Description,Amount,Date,StoreId")] Expense expense)
+        public async Task<IActionResult> Create(Expense expense, IFormFile BillImage)
         {
             if (ModelState.IsValid)
             {
+                if (BillImage != null && BillImage.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "bills");
+                    Directory.CreateDirectory(uploadsFolder);
+
+                    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(BillImage.FileName);
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await BillImage.CopyToAsync(stream);
+                    }
+
+                    expense.BillImagePath = "/bills/" + uniqueFileName;
+                }
+
                 _context.Add(expense);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -122,11 +137,9 @@ namespace HomeFinance.web.Controllers
         }
 
         // POST: Expenses/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Category,Description,Amount,Date,StoreId")] Expense expense)
+        public async Task<IActionResult> Edit(int id, Expense expense, IFormFile BillImage)
         {
             if (id != expense.Id)
             {
@@ -137,6 +150,22 @@ namespace HomeFinance.web.Controllers
             {
                 try
                 {
+                    if (BillImage != null && BillImage.Length > 0)
+                    {
+                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "bills");
+                        Directory.CreateDirectory(uploadsFolder);
+
+                        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(BillImage.FileName);
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await BillImage.CopyToAsync(stream);
+                        }
+
+                        expense.BillImagePath = "/bills/" + uniqueFileName;
+                    }
+
                     _context.Update(expense);
                     await _context.SaveChangesAsync();
                 }
@@ -153,6 +182,7 @@ namespace HomeFinance.web.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
             PopulateCategoryDropdown(expense.Category);
             PopulateStoresDropdown(expense.StoreId);
             return View(expense);
@@ -169,6 +199,7 @@ namespace HomeFinance.web.Controllers
             var expense = await _context.Expenses
                 .Include(e => e.Store)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (expense == null)
             {
                 return NotFound();
@@ -194,7 +225,6 @@ namespace HomeFinance.web.Controllers
 
         public IActionResult ViewSummary()
         {
-            // Category Summary
             var categorySummary = _context.Expenses
                 .GroupBy(e => e.Category)
                 .Select(g => new ExpenseSummaryViewModel
@@ -205,29 +235,26 @@ namespace HomeFinance.web.Controllers
                 .OrderBy(s => s.Category)
                 .ToList();
 
-            // Month Summary
             var monthSummaryData = _context.Expenses
-    .GroupBy(e => new { e.Date.Year, e.Date.Month })
-    .Select(g => new
-    {
-        Year = g.Key.Year,
-        Month = g.Key.Month,
-        TotalAmount = g.Sum(e => e.Amount)
-    })
-    .OrderBy(g => g.Year)
-    .ThenBy(g => g.Month)
-    .ToList();  // Executes query here, data now in memory
+                .GroupBy(e => new { e.Date.Year, e.Date.Month })
+                .Select(g => new
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    TotalAmount = g.Sum(e => e.Amount)
+                })
+                .OrderBy(g => g.Year)
+                .ThenBy(g => g.Month)
+                .ToList();
 
             var monthSummary = monthSummaryData
-     .Select(g => new ExpenseSummaryViewModel
-     {
-         Month = new DateTime(g.Year, g.Month, 1).ToString("MMMM yyyy"), // Formats as "January 2025"
-         Category = "", // no category for this summary
-         TotalAmount = g.TotalAmount
-     })
-     .ToList();
-
-
+                .Select(g => new ExpenseSummaryViewModel
+                {
+                    Month = new DateTime(g.Year, g.Month, 1).ToString("MMMM yyyy"),
+                    Category = "",
+                    TotalAmount = g.TotalAmount
+                })
+                .ToList();
 
             var viewModel = new ExpenseSummaryPageViewModel
             {
@@ -237,7 +264,6 @@ namespace HomeFinance.web.Controllers
 
             return View(viewModel);
         }
-
 
         private bool ExpenseExists(int id)
         {
