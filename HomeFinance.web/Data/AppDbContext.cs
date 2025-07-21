@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using HomeFinance.web.Models;
-
 
 namespace HomeFinance.web.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -19,8 +19,7 @@ namespace HomeFinance.web.Data
                 new Store { StoreId = 1, StoreName = "Walmart" },
                 new Store { StoreId = 2, StoreName = "Sobeys" },
                 new Store { StoreId = 3, StoreName = "Atlantic Superstore" }
-             );
-
+            );
         }
     }
 }
