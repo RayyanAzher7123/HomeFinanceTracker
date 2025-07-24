@@ -87,8 +87,10 @@ namespace HomeFinance.web.Controllers
         // POST: Expenses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Expense expense, IFormFile BillImage)
+        public async Task<IActionResult> Create(Expense expense, IFormFile? BillImage)
         {
+            ModelState.Remove("BillImagePath");
+
             if (ModelState.IsValid)
             {
                 if (BillImage != null && BillImage.Length > 0)
@@ -139,12 +141,15 @@ namespace HomeFinance.web.Controllers
         // POST: Expenses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Expense expense, IFormFile BillImage)
+        public async Task<IActionResult> Edit(int id, Expense expense, IFormFile? BillImage)
         {
             if (id != expense.Id)
             {
                 return NotFound();
             }
+
+            // Prevent validation error if no new image uploaded
+            ModelState.Remove("BillImagePath");
 
             if (ModelState.IsValid)
             {
@@ -164,6 +169,11 @@ namespace HomeFinance.web.Controllers
                         }
 
                         expense.BillImagePath = "/bills/" + uniqueFileName;
+                    }
+                    else
+                    {
+                        // Preserve existing path if no new image
+                        _context.Entry(expense).Property(x => x.BillImagePath).IsModified = false;
                     }
 
                     _context.Update(expense);
@@ -187,6 +197,7 @@ namespace HomeFinance.web.Controllers
             PopulateStoresDropdown(expense.StoreId);
             return View(expense);
         }
+
 
         // GET: Expenses/Delete/5
         public async Task<IActionResult> Delete(int? id)
