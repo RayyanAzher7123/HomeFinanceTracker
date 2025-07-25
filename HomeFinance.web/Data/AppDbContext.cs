@@ -10,6 +10,8 @@ namespace HomeFinance.web.Data
 
         public DbSet<Store> Stores { get; set; }
         public DbSet<Expense> Expenses { get; set; }
+        public DbSet<AppUser> AppUsers { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

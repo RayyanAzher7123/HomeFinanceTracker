@@ -28,6 +28,9 @@ namespace HomeFinance.web.Models
 
         public string? BillImagePath { get; set; }
 
+        public int AppUserId { get; set; }
+        public AppUser AppUser { get; set; }
+
 
 
     }
