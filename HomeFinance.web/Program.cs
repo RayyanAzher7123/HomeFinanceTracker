@@ -1,5 +1,5 @@
 using HomeFinance.web.Data;
-using HomeFinance.web.Models; 
+using HomeFinance.web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +12,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Register Identity services
 builder.Services.AddDefaultIdentity<ApplicationUser>()
     .AddEntityFrameworkStores<AppDbContext>();
+
+// Add Session Services
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // optional
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
@@ -31,13 +39,15 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication(); 
+// Enable Session Middleware
+app.UseSession();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
-
 
 app.MapRazorPages();
 

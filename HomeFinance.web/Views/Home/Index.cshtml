@@ -2,13 +2,24 @@
     ViewData["Title"] = "Home Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome to Home Finance Tracker</h1>
-    <p class="lead"> Track your household expenses easily and efficiently.</p>
+<div class="container mt-3">
+    <!-- Top row: Logout on the right -->
+    <div class="d-flex justify-content-between">
+        <div></div> <!-- Empty left side -->
+        <form asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit" class="btn btn-outline-danger">Logout</button>
+        </form>
+    </div>
 
-    <div class="mt-4">
-        <a class="btn btn-primary btn-lg m-2" asp-controller="Expenses" asp-action="Index"> View all expenses</a>
-        <a class="btn btn-success btn-lg m-2" asp-controller="Expenses" asp-action="Create"> Add New Expense</a>
-        <a class="btn btn-warning btn-lg m-2" asp-controller="Expenses" asp-action="ViewSummary"> View Summary</a>
+    <!-- Center content -->
+    <div class="text-center mt-4">
+        <h1 class="display-4">Welcome to Home Finance Tracker</h1>
+        <p class="lead">Track your household expenses easily and efficiently.</p>
+
+        <div class="mt-4">
+            <a class="btn btn-primary btn-lg m-2" asp-controller="Expenses" asp-action="Index">View all expenses</a>
+            <a class="btn btn-success btn-lg m-2" asp-controller="Expenses" asp-action="Create">Add New Expense</a>
+            <a class="btn btn-warning btn-lg m-2" asp-controller="Expenses" asp-action="ViewSummary">View Summary</a>
+        </div>
     </div>
 </div>

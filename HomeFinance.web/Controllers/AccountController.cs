@@ -67,7 +67,7 @@ namespace HomeFinance.web.Controllers
                 if (user != null && BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
                 {
                     // Login successful - set session or cookie as needed
-                    // Example: TempData for now
+                   
                     TempData["Message"] = $"Welcome back, {user.Name}!";
 
                     return RedirectToAction("Index", "Home");
@@ -78,6 +78,12 @@ namespace HomeFinance.web.Controllers
 
             return View(model);
         }
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear(); // Clear all session data
+            return RedirectToAction("Login", "Account");
+        }
+
 
     }
 
