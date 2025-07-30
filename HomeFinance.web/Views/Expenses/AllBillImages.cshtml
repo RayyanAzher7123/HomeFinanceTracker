@@ -1,0 +1,16 @@
+﻿@model List<HomeFinance.web.Models.Expense>
+
+<h2>All Bill Images</h2>
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <img class="card-img-top" src="@item.BillImagePath" alt="Bill Image" />
+                <div class="card-body">
+                    <p class="card-text"><strong>User:</strong> @item.Username</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>

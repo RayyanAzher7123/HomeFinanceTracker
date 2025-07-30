@@ -1,7 +1,6 @@
 ﻿using HomeFinance.web.Models;
 using HomeFinance.web.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Scripting;
 
 namespace HomeFinance.web.Controllers
 {
@@ -43,7 +42,8 @@ namespace HomeFinance.web.Controllers
                 _context.AppUsers.Add(user);
                 await _context.SaveChangesAsync();
 
-                // Redirect to Login page after successful registration
+                TempData["Message"] = $"Account created for '{user.Username}'. Please log in.";
+
                 return RedirectToAction("Login", "Account");
             }
 
@@ -66,9 +66,11 @@ namespace HomeFinance.web.Controllers
 
                 if (user != null && BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
                 {
-                    // Login successful - set session or cookie as needed
-                   
-                    TempData["Message"] = $"Welcome back, {user.Name}!";
+                    // Store user ID or username in session
+                    HttpContext.Session.SetInt32("UserId", user.Id);
+                    HttpContext.Session.SetString("Username", user.Username);
+
+                    TempData["Message"] = $"'{user.Username}' logged in successfully.";
 
                     return RedirectToAction("Index", "Home");
                 }
@@ -78,13 +80,15 @@ namespace HomeFinance.web.Controllers
 
             return View(model);
         }
+
         public IActionResult Logout()
         {
-            HttpContext.Session.Clear(); // Clear all session data
+            var username = HttpContext.Session.GetString("Username");
+            HttpContext.Session.Clear();
+
+            TempData["Message"] = $"'{username}' has been logged out.";
+
             return RedirectToAction("Login", "Account");
         }
-
-
     }
-
 }

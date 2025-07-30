@@ -21,7 +21,6 @@ namespace HomeFinance.web.Controllers
             _context = context;
         }
 
-        // Populate Store Dropdown
         private void PopulateStoresDropdown(int? SelectedStoreId = null)
         {
             var stores = _context.Stores
@@ -34,7 +33,6 @@ namespace HomeFinance.web.Controllers
             ViewBag.StoreId = new SelectList(stores, "Value", "Text", SelectedStoreId);
         }
 
-        // Dropdown Category
         private void PopulateCategoryDropdown(string? selectedCategory = null)
         {
             var categories = new List<SelectListItem>
@@ -49,34 +47,36 @@ namespace HomeFinance.web.Controllers
             ViewBag.CategoryList = new SelectList(categories, "Value", "Text", selectedCategory);
         }
 
-        // GET: Expenses
         public async Task<IActionResult> Index()
         {
-            var expenses = await _context.Expenses.Include(e => e.Store).ToListAsync();
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var expenses = await _context.Expenses
+                                         .Include(e => e.Store)
+                                         .Where(e => e.AppUserId == userId)
+                                         .ToListAsync();
+
             return View(expenses);
         }
 
-        // GET: Expenses/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var expense = await _context.Expenses
                 .Include(e => e.Store)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (expense == null)
-            {
-                return NotFound();
-            }
+            if (expense == null) return NotFound();
 
             return View(expense);
         }
 
-        // GET: Expenses/Create
         public IActionResult Create()
         {
             PopulateCategoryDropdown();
@@ -84,7 +84,6 @@ namespace HomeFinance.web.Controllers
             return View();
         }
 
-        // POST: Expenses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Expense expense, IFormFile? BillImage)
@@ -93,18 +92,24 @@ namespace HomeFinance.web.Controllers
 
             if (ModelState.IsValid)
             {
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (userId == null)
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                expense.AppUserId = userId;
+
                 if (BillImage != null && BillImage.Length > 0)
                 {
                     var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "bills");
                     Directory.CreateDirectory(uploadsFolder);
 
-                    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(BillImage.FileName);
+                    var uniqueFileName = Guid.NewGuid() + Path.GetExtension(BillImage.FileName);
                     var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await BillImage.CopyToAsync(stream);
-                    }
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await BillImage.CopyToAsync(stream);
 
                     expense.BillImagePath = "/bills/" + uniqueFileName;
                 }
@@ -119,60 +124,49 @@ namespace HomeFinance.web.Controllers
             return View(expense);
         }
 
-        // GET: Expenses/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var expense = await _context.Expenses.FindAsync(id);
-            if (expense == null)
-            {
-                return NotFound();
-            }
+            if (expense == null) return NotFound();
 
             PopulateCategoryDropdown(expense.Category);
             PopulateStoresDropdown(expense.StoreId);
             return View(expense);
         }
 
-        // POST: Expenses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Expense expense, IFormFile? BillImage)
         {
-            if (id != expense.Id)
-            {
-                return NotFound();
-            }
+            if (id != expense.Id) return NotFound();
 
-            // Prevent validation error if no new image uploaded
             ModelState.Remove("BillImagePath");
 
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // ✅ Reassign AppUserId from session
+                    expense.AppUserId = HttpContext.Session.GetInt32("UserId");
+
                     if (BillImage != null && BillImage.Length > 0)
                     {
                         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "bills");
                         Directory.CreateDirectory(uploadsFolder);
 
-                        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(BillImage.FileName);
+                        var uniqueFileName = Guid.NewGuid() + Path.GetExtension(BillImage.FileName);
                         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await BillImage.CopyToAsync(stream);
-                        }
+                        using var stream = new FileStream(filePath, FileMode.Create);
+                        await BillImage.CopyToAsync(stream);
 
                         expense.BillImagePath = "/bills/" + uniqueFileName;
                     }
                     else
                     {
-                        // Preserve existing path if no new image
+                        // ✅ Preserve the existing image path
                         _context.Entry(expense).Property(x => x.BillImagePath).IsModified = false;
                     }
 
@@ -181,14 +175,8 @@ namespace HomeFinance.web.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ExpenseExists(expense.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!ExpenseExists(expense.Id)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -199,27 +187,19 @@ namespace HomeFinance.web.Controllers
         }
 
 
-        // GET: Expenses/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var expense = await _context.Expenses
                 .Include(e => e.Store)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (expense == null)
-            {
-                return NotFound();
-            }
+            if (expense == null) return NotFound();
 
             return View(expense);
         }
 
-        // POST: Expenses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -228,15 +208,37 @@ namespace HomeFinance.web.Controllers
             if (expense != null)
             {
                 _context.Expenses.Remove(expense);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        public IActionResult AllBillImages()
+        {
+            var images = _context.Expenses
+                .Include(e => e.AppUser)
+                .Where(e => e.BillImagePath != null && e.AppUserId != null)
+                .Select(e => new BillImageViewModel
+                {
+                    BillImagePath = e.BillImagePath,
+                    Username = e.AppUser.Username
+                })
+                .ToList();
+
+            return View(images);
+        }
+
+
 
         public IActionResult ViewSummary()
         {
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
             var categorySummary = _context.Expenses
+                .Where(e => e.AppUserId == userId)
                 .GroupBy(e => e.Category)
                 .Select(g => new ExpenseSummaryViewModel
                 {
@@ -247,6 +249,7 @@ namespace HomeFinance.web.Controllers
                 .ToList();
 
             var monthSummaryData = _context.Expenses
+                .Where(e => e.AppUserId == userId)
                 .GroupBy(e => new { e.Date.Year, e.Date.Month })
                 .Select(g => new
                 {
@@ -254,8 +257,7 @@ namespace HomeFinance.web.Controllers
                     Month = g.Key.Month,
                     TotalAmount = g.Sum(e => e.Amount)
                 })
-                .OrderBy(g => g.Year)
-                .ThenBy(g => g.Month)
+                .OrderBy(g => g.Year).ThenBy(g => g.Month)
                 .ToList();
 
             var monthSummary = monthSummaryData
@@ -267,13 +269,11 @@ namespace HomeFinance.web.Controllers
                 })
                 .ToList();
 
-            var viewModel = new ExpenseSummaryPageViewModel
+            return View(new ExpenseSummaryPageViewModel
             {
                 CategorySummary = categorySummary,
                 MonthSummary = monthSummary
-            };
-
-            return View(viewModel);
+            });
         }
 
         private bool ExpenseExists(int id)
