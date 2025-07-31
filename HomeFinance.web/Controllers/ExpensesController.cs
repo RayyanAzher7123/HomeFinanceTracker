@@ -138,9 +138,10 @@ namespace HomeFinance.web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Expense expense, IFormFile? BillImage)
+        public async Task<IActionResult> Edit(int id, Expense updatedExpense, IFormFile? BillImage)
         {
-            if (id != expense.Id) return NotFound();
+            if (id != updatedExpense.Id)
+                return NotFound();
 
             ModelState.Remove("BillImagePath");
 
@@ -148,43 +149,56 @@ namespace HomeFinance.web.Controllers
             {
                 try
                 {
-                    // ✅ Reassign AppUserId from session
-                    expense.AppUserId = HttpContext.Session.GetInt32("UserId");
+                    // Get the original expense from DB
+                    var originalExpense = await _context.Expenses.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+
+                    if (originalExpense == null)
+                        return NotFound();
+
+                    // Preserve AppUserId and BillImagePath unless overridden
+                    updatedExpense.AppUserId = originalExpense.AppUserId;
 
                     if (BillImage != null && BillImage.Length > 0)
                     {
+                        // Save new image
                         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "bills");
                         Directory.CreateDirectory(uploadsFolder);
 
                         var uniqueFileName = Guid.NewGuid() + Path.GetExtension(BillImage.FileName);
                         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                        using var stream = new FileStream(filePath, FileMode.Create);
-                        await BillImage.CopyToAsync(stream);
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await BillImage.CopyToAsync(stream);
+                        }
 
-                        expense.BillImagePath = "/bills/" + uniqueFileName;
+                        updatedExpense.BillImagePath = "/bills/" + uniqueFileName;
                     }
                     else
                     {
-                        // ✅ Preserve the existing image path
-                        _context.Entry(expense).Property(x => x.BillImagePath).IsModified = false;
+                        // No new image uploaded — keep old one
+                        updatedExpense.BillImagePath = originalExpense.BillImagePath;
                     }
 
-                    _context.Update(expense);
+                    _context.Update(updatedExpense);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ExpenseExists(expense.Id)) return NotFound();
-                    else throw;
+                    if (!ExpenseExists(updatedExpense.Id))
+                        return NotFound();
+                    else
+                        throw;
                 }
+
                 return RedirectToAction(nameof(Index));
             }
 
-            PopulateCategoryDropdown(expense.Category);
-            PopulateStoresDropdown(expense.StoreId);
-            return View(expense);
+            PopulateCategoryDropdown(updatedExpense.Category);
+            PopulateStoresDropdown(updatedExpense.StoreId);
+            return View(updatedExpense);
         }
+
 
 
         public async Task<IActionResult> Delete(int? id)
@@ -214,19 +228,23 @@ namespace HomeFinance.web.Controllers
             return RedirectToAction(nameof(Index));
         }
         public IActionResult AllBillImages()
+{
+    var images = _context.Expenses
+        .Include(e => e.AppUser)
+        .Where(e => !string.IsNullOrEmpty(e.BillImagePath))
+        .Select(e => new BillImageViewModel
         {
-            var images = _context.Expenses
-                .Include(e => e.AppUser)
-                .Where(e => e.BillImagePath != null && e.AppUserId != null)
-                .Select(e => new BillImageViewModel
-                {
-                    BillImagePath = e.BillImagePath,
-                    Username = e.AppUser.Username
-                })
-                .ToList();
+            BillImagePath = e.BillImagePath,
+            Username = e.AppUser != null ? e.AppUser.Username : "Unknown",
+            Amount = e.Amount,
+            Category = e.Category,
+            Date = e.Date
+        })
+        .ToList();
 
-            return View(images);
-        }
+    return View(images);
+}
+
 
 
 
