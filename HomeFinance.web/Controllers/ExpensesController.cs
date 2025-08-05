@@ -250,11 +250,14 @@ namespace HomeFinance.web.Controllers
 
         public IActionResult ViewSummary()
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
+            int? userId = HttpContext.Session.GetInt32("UserId");
 
             if (userId == null)
+            {
                 return RedirectToAction("Login", "Account");
+            }
 
+            // CATEGORY summary
             var categorySummary = _context.Expenses
                 .Where(e => e.AppUserId == userId)
                 .GroupBy(e => e.Category)
@@ -266,6 +269,7 @@ namespace HomeFinance.web.Controllers
                 .OrderBy(s => s.Category)
                 .ToList();
 
+            // MONTH summary
             var monthSummaryData = _context.Expenses
                 .Where(e => e.AppUserId == userId)
                 .GroupBy(e => new { e.Date.Year, e.Date.Month })
@@ -275,7 +279,8 @@ namespace HomeFinance.web.Controllers
                     Month = g.Key.Month,
                     TotalAmount = g.Sum(e => e.Amount)
                 })
-                .OrderBy(g => g.Year).ThenBy(g => g.Month)
+                .OrderBy(g => g.Year)
+                .ThenBy(g => g.Month)
                 .ToList();
 
             var monthSummary = monthSummaryData
@@ -287,11 +292,26 @@ namespace HomeFinance.web.Controllers
                 })
                 .ToList();
 
-            return View(new ExpenseSummaryPageViewModel
+            // ✅ STORE summary (FOR CURRENT USER ONLY)
+            var storeSummary = _context.Expenses
+                .Include(e => e.Store)
+                .Where(e => e.AppUserId == userId)
+                .GroupBy(e => e.Store.StoreName)
+                .Select(g => new ExpenseSummaryViewModel
+                {
+                    Category = g.Key,
+                    TotalAmount = g.Sum(e => e.Amount)
+                })
+                .ToList();
+
+            var viewModel = new ExpenseSummaryPageViewModel
             {
                 CategorySummary = categorySummary,
-                MonthSummary = monthSummary
-            });
+                MonthSummary = monthSummary,
+                StoreSummary = storeSummary
+            };
+
+            return View(viewModel);
         }
 
         private bool ExpenseExists(int id)

@@ -4,5 +4,7 @@
     {
         public List<ExpenseSummaryViewModel> CategorySummary { get; set; }
         public List<ExpenseSummaryViewModel> MonthSummary { get; set; }
+        public List<ExpenseSummaryViewModel> StoreSummary { get; set; }
+
     }
 }

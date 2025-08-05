@@ -1,51 +1,121 @@
-﻿@model HomeFinance.web.Models.ExpenseSummaryPageViewModel
+﻿@using System.Text.Json
 
+@model HomeFinance.web.Models.ExpenseSummaryPageViewModel
 @{
     ViewData["Title"] = "Expense Summary";
 }
 
-<h1>Expense Summary</h1>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Expense Summary</h2>
 
-<hr />
+    <!-- Chart: Category Summary -->
+    <div class="card mb-5">
+        <div class="card-body">
+            <h4 class="card-title">Category-wise Expenses</h4>
+            <canvas id="categoryChart" width="400" height="200"></canvas>
+        </div>
+    </div>
 
-<!-- Category-wise Summary -->
-<h2>Category-wise Summary</h2>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Category</th>
-            <th>Total Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.CategorySummary)
-        {
-            <tr>
-                <td>@item.Category</td>
-                <td>@item.TotalAmount.ToString("C")</td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <!-- Chart: Monthly Summary -->
+    <div class="card mb-5">
+        <div class="card-body">
+            <h4 class="card-title">Monthly Expense Trend</h4>
+            <canvas id="monthlyChart" width="400" height="200"></canvas>
+        </div>
+    </div>
 
-<hr />
+    <!-- Chart: Store-wise Pie Chart -->
+    <div class="card mb-5">
+        <div class="card-body">
+            <h4 class="card-title">Store-wise Expenses</h4>
+            <canvas id="storePieChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
 
-<!-- Month-wise Summary -->
-<h2>Month-wise Summary</h2>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Month</th>
-            <th>Total Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.MonthSummary)
-        {
-            <tr>
-                <td>@item.Month</td>
-                <td>@item.TotalAmount.ToString("C")</td>
-            </tr>
-        }
-    </tbody>
-</table>
+@section Scripts {
+    <script>
+        // Category-wise chart data
+        const categoryLabels = @Html.Raw(Json.Serialize(Model.CategorySummary.Select(c => c.Category)));
+        const categoryData = @Html.Raw(Json.Serialize(Model.CategorySummary.Select(c => c.TotalAmount)));
+
+        const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctxCategory, {
+            type: 'bar',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    label: 'Total Spent ($)',
+                    data: categoryData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Monthly summary chart data
+        const monthLabels = @Html.Raw(Json.Serialize(Model.MonthSummary.Select(m => m.Month)));
+        const monthData = @Html.Raw(Json.Serialize(Model.MonthSummary.Select(m => m.TotalAmount)));
+
+        const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(ctxMonthly, {
+            type: 'line',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: 'Total Spent ($)',
+                    data: monthData,
+                    fill: false,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Store-wise Pie Chart
+        const storeLabels = @Html.Raw(JsonSerializer.Serialize(Model.StoreSummary.Select(s => s.Category)));
+        const storeData = @Html.Raw(JsonSerializer.Serialize(Model.StoreSummary.Select(s => s.TotalAmount)));
+
+        const ctxStore = document.getElementById('storePieChart').getContext('2d');
+        new Chart(ctxStore, {
+            type: 'pie',
+            data: {
+                labels: storeLabels,
+                datasets: [{
+                    data: storeData,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)'
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+
+    </script>
+}
