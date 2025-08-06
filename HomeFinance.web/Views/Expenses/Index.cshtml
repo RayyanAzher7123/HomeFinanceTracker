@@ -1,51 +1,54 @@
 ﻿@model IEnumerable<HomeFinance.web.Models.Expense>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "All Expenses";
 }
 
-<h1>Index</h1>
+<div class="container py-4">
+    <h2 class="mb-4 text-primary text-center">📋 All Expenses</h2>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.Category)</th>
-            <th>@Html.DisplayNameFor(model => model.Description)</th>
-            <th>@Html.DisplayNameFor(model => model.Amount)</th>
-            <th>@Html.DisplayNameFor(model => model.Date)</th>
-            <th>Store</th>
-            <th>Bill</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+    <div class="text-end mb-3">
+        <a asp-action="Create" class="btn btn-success">➕ Add New Expense</a>
+    </div>
+
+    <table class="table table-bordered table-hover shadow-sm">
+        <thead class="table-light">
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.Category)</td>
-                <td>@Html.DisplayFor(modelItem => item.Description)</td>
-                <td>@Html.DisplayFor(modelItem => item.Amount)</td>
-                <td>@Html.DisplayFor(modelItem => item.Date)</td>
-                <td>@item.Store?.StoreName</td>
-                <td>
-                    @if (!string.IsNullOrEmpty(item.BillImagePath))
-                    {
-                        <a href="@item.BillImagePath" target="_blank">View Bill</a>
-                    }
-                    else
-                    {
-                        <span>No Bill</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Store</th>
+                <th>Bill</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Category</td>
+                    <td>@item.Description</td>
+                    <td>$@item.Amount</td>
+                    <td>@item.Date.ToShortDateString()</td>
+                    <td>@item.Store?.StoreName</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.BillImagePath))
+                        {
+                            <a class="btn btn-outline-primary btn-sm" href="@item.BillImagePath" target="_blank">View</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No Bill</span>
+                        }
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-info text-white" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                        <a class="btn btn-sm btn-secondary" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

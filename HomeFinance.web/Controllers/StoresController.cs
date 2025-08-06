@@ -30,10 +30,18 @@ namespace HomeFinance.web.Controllers
             {
                 _context.Stores.Add(store);
                 _context.SaveChanges();
-                return RedirectToAction("Create", "Expenses");
+                return RedirectToAction("Index");
+
             }
             return View(store);
         }
+
+        public IActionResult Index()
+        {
+            var stores = _context.Stores.ToList();
+            return View(stores);
+        }
+
 
 
     }

@@ -1,0 +1,36 @@
+﻿@model IEnumerable<HomeFinance.web.Models.Store>
+
+@{
+    ViewData["Title"] = "Stores";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">All Stores</h2>
+
+    <div class="mb-3 text-end">
+        <a asp-action="Create" class="btn btn-success">+ Add New Store</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <p>No stores have been added yet.</p>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped">
+            <thead class="table-primary">
+                <tr>
+                    <th>Store Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var store in Model)
+                {
+                    <tr>
+                        <td>@store.StoreName</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

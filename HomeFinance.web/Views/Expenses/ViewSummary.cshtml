@@ -1,46 +1,54 @@
 ﻿@using System.Text.Json
-
 @model HomeFinance.web.Models.ExpenseSummaryPageViewModel
+
 @{
     ViewData["Title"] = "Expense Summary";
 }
 
-<div class="container mt-4">
-    <h2 class="text-center mb-4">Expense Summary</h2>
+<div class="container mt-5">
+    <h2 class="text-center mb-4 display-6 fw-bold text-primary">📊 Expense Summary</h2>
+    <p class="text-center text-muted mb-5">Visual overview of your spending patterns by category, month, and store.</p>
 
-    <!-- Chart: Category Summary -->
-    <div class="card mb-5">
-        <div class="card-body">
-            <h4 class="card-title">Category-wise Expenses</h4>
-            <canvas id="categoryChart" width="400" height="200"></canvas>
+    <div class="row g-4">
+        <!-- Category Summary -->
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="card-title text-center text-primary">Category-wise Expenses</h4>
+                    <canvas id="categoryChart" height="100"></canvas>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <!-- Chart: Monthly Summary -->
-    <div class="card mb-5">
-        <div class="card-body">
-            <h4 class="card-title">Monthly Expense Trend</h4>
-            <canvas id="monthlyChart" width="400" height="200"></canvas>
+        <!-- Monthly Summary -->
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="card-title text-center text-success">Monthly Expense Trend</h4>
+                    <canvas id="monthlyChart" height="100"></canvas>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <!-- Chart: Store-wise Pie Chart -->
-    <div class="card mb-5">
-        <div class="card-body">
-            <h4 class="card-title">Store-wise Expenses</h4>
-            <canvas id="storePieChart" width="400" height="200"></canvas>
+        <!-- Store Summary -->
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="card-title text-center text-warning">Store-wise Spending (Pie Chart)</h4>
+                    <canvas id="storePieChart" height="100"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Category-wise chart data
+        // Category Chart
         const categoryLabels = @Html.Raw(Json.Serialize(Model.CategorySummary.Select(c => c.Category)));
         const categoryData = @Html.Raw(Json.Serialize(Model.CategorySummary.Select(c => c.TotalAmount)));
 
-        const ctxCategory = document.getElementById('categoryChart').getContext('2d');
-        new Chart(ctxCategory, {
+        new Chart(document.getElementById('categoryChart'), {
             type: 'bar',
             data: {
                 labels: categoryLabels,
@@ -54,47 +62,40 @@
             },
             options: {
                 responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
             }
         });
 
-        // Monthly summary chart data
+        // Monthly Chart
         const monthLabels = @Html.Raw(Json.Serialize(Model.MonthSummary.Select(m => m.Month)));
         const monthData = @Html.Raw(Json.Serialize(Model.MonthSummary.Select(m => m.TotalAmount)));
 
-        const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
-        new Chart(ctxMonthly, {
+        new Chart(document.getElementById('monthlyChart'), {
             type: 'line',
             data: {
                 labels: monthLabels,
                 datasets: [{
                     label: 'Total Spent ($)',
                     data: monthData,
-                    fill: false,
                     borderColor: 'rgba(255, 99, 132, 1)',
-                    tension: 0.1
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: true,
+                    tension: 0.4
                 }]
             },
             options: {
                 responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
             }
         });
 
-        // Store-wise Pie Chart
+        // Store Pie Chart
         const storeLabels = @Html.Raw(JsonSerializer.Serialize(Model.StoreSummary.Select(s => s.Category)));
         const storeData = @Html.Raw(JsonSerializer.Serialize(Model.StoreSummary.Select(s => s.TotalAmount)));
 
-        const ctxStore = document.getElementById('storePieChart').getContext('2d');
-        new Chart(ctxStore, {
+        new Chart(document.getElementById('storePieChart'), {
             type: 'pie',
             data: {
                 labels: storeLabels,
@@ -109,13 +110,21 @@
                         'rgba(255, 159, 64, 0.6)'
                     ],
                     borderColor: '#fff',
-                    borderWidth: 1
+                    borderWidth: 2
                 }]
             },
             options: {
-                responsive: true
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15
+                        }
+                    }
+                }
             }
         });
-
     </script>
 }

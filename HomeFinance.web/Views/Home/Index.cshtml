@@ -2,20 +2,73 @@
     ViewData["Title"] = "Home Dashboard";
 }
 
-<div class="container mt-3">
-    
+<div class="container py-5">
+    <!-- App Title -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">🏠 Home Finance Tracker</h1>
+        <p class="lead text-muted">Manage your expenses, monitor spending, and stay in control of your finances.</p>
+    </div>
 
-    <!-- Center content -->
-    <div class="text-center mt-4">
-        <h1 class="display-4">Welcome to Home Finance Tracker</h1>
-        <p class="lead">Track your household expenses easily and efficiently.</p>
+    <!-- Dashboard Cards -->
+    <div class="row g-4">
+        <!-- View All Expenses -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-table fs-1 text-primary mb-3"></i>
+                    <h5 class="card-title">All Expenses</h5>
+                    <p class="card-text text-muted">Browse your full list of expense entries.</p>
+                    <a class="btn btn-primary text-white" asp-controller="Expenses" asp-action="Index">View Expenses</a>
+                </div>
+            </div>
+        </div>
 
-        <div class="mt-4">
-            <a class="btn btn-primary btn-lg m-2" asp-controller="Expenses" asp-action="Index">View all expenses</a>
-            <a class="btn btn-success btn-lg m-2" asp-controller="Expenses" asp-action="Create">Add New Expense</a>
-            <a class="btn btn-warning btn-lg m-2" asp-controller="Expenses" asp-action="ViewSummary">View Summary</a>
-            <a class="btn btn-info btn-lg m-2" asp-controller="Expenses" asp-action="AllBillImages">All Bill Images</a>
+        <!-- Add New Expense -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-plus-circle fs-1 text-success mb-3"></i>
+                    <h5 class="card-title">Add Expense</h5>
+                    <p class="card-text text-muted">Log a new purchase or bill with optional receipt upload.</p>
+                    <a class="btn btn-success" asp-controller="Expenses" asp-action="Create">Add New Expense</a>
+                </div>
+            </div>
+        </div>
 
+        <!-- View Summary -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-bar-chart-line fs-1 text-warning mb-3"></i>
+                    <h5 class="card-title">Summary</h5>
+                    <p class="card-text text-muted">Visualize your spending by category and month.</p>
+                    <a class="btn btn-warning text-white" asp-controller="Expenses" asp-action="ViewSummary">View Summary</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Bill Images -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-image fs-1 text-info mb-3"></i>
+                    <h5 class="card-title">Bill Images</h5>
+                    <p class="card-text text-muted">View all uploaded bill images across users.</p>
+                    <a class="btn btn-info text-white" asp-controller="Expenses" asp-action="AllBillImages">All Bill Images</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Stores -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-shop-window fs-1 text-secondary mb-3"></i>
+                    <h5 class="card-title">Stores</h5>
+                    <p class="card-text text-muted">Manage store information or add new ones.</p>
+                    <a class="btn btn-secondary text-white" asp-controller="Stores" asp-action="Index">Stores</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

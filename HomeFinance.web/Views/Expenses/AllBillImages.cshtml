@@ -1,19 +1,29 @@
 ﻿@model List<HomeFinance.web.Models.BillImageViewModel>
 
-<h2>All Bill Images</h2>
-<div class="row">
-    @foreach (var item in Model)
-    {
-        <div class="col-md-4 mb-3">
-            <div class="card h-100">
-                <img class="card-img-top" src="@item.BillImagePath" alt="Bill Image" />
-                <div class="card-body">
-                    <p><strong>User:</strong> @item.Username</p>
-                    <p><strong>Amount:</strong> @item.Amount.ToString("C")</p>
-                    <p><strong>Category:</strong> @item.Category</p>
-                    <p><strong>Date:</strong> @item.Date.ToString("yyyy-MM-dd")</p>
+@{
+    ViewData["Title"] = "All Bill Images";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 display-6 fw-bold text-primary">📷 Uploaded Bill Images</h2>
+    <p class="text-center text-muted mb-5">Browse through all uploaded receipts along with their details.</p>
+
+    <div class="row g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <img class="card-img-top rounded-top" src="@item.BillImagePath" alt="Bill Image">
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>User:</strong> @item.Username</li>
+                            <li><strong>Amount:</strong> @item.Amount.ToString("C")</li>
+                            <li><strong>Category:</strong> @item.Category</li>
+                            <li><strong>Date:</strong> @item.Date.ToString("yyyy-MM-dd")</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 </div>
